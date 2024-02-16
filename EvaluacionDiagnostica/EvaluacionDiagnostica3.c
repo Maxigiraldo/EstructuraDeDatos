@@ -28,8 +28,31 @@ void registrarVehiculo(){
     fgets(vehiculo.marca, 20, stdin);
     printf("Ingrese el modelo del vehiculo:\n");
     fgets(vehiculo.modelo, 20, stdin);
-    printf("Ingrese la placa del vehiculo\n");
-    fgets(vehiculo.placa, 20, stdin);
+    do {
+        printf("Ingrese la placa del vehiculo\n");
+        fgets(vehiculo.placa, 20, stdin);
+
+        // Abrir archivo para lectura
+        FILE *vehiculos;
+        vehiculos = fopen("vehiculos.bin", "rb");
+        if (vehiculos == NULL) {
+            printf("Error al abrir el archivo.");
+            return;
+        }
+
+        // Verificar si la placa ya existe
+        struct Vehiculo temp;
+        while (fread(&temp, sizeof(temp), 1, vehiculos) == 1) {
+            if (strcmp(vehiculo.placa, temp.placa) == 0) {
+                printf("La placa ya existe en la base de datos. Ingrese otra placa.\n");
+                condicion = 0;
+                break;
+            } else {
+                condicion = 1;
+            }
+        }
+        fclose(vehiculos);
+    } while (!condicion);
     printf("Ingrese el año del vehiculo:\n");
     scanf("%d", &vehiculo.año);
     getchar();
@@ -83,6 +106,8 @@ void consultarVehiculos(){
 
     //Creacion de variables y la estructura que usaremos en esta funcion
     struct Vehiculo vehiculo;
+    int op = 0, min = 0, max = 0, op_sec = 0;
+    char ingreso_marca[20];
 
     //Abre el archivo binario en modo de lectura
     FILE *vehiculos;
@@ -92,15 +117,84 @@ void consultarVehiculos(){
         return;
     }
 
-    //Este bucle se encarga de ir mostrando los datos de cada vehiculo mientras este activado en el sistema, mientras reciba datos lo mostrara, en el momento en el que ya no reciba algun dato. se detiene
-    while (fread(&vehiculo, sizeof(vehiculo), 1, vehiculos) == 1){
-        if ('A' == vehiculo.estado){
-            printf("MARCA: %s", vehiculo.marca);
-            printf("MODELO: %s", vehiculo.modelo);
-            printf("PRECIO: %d\n", vehiculo.valor);
-            printf("TIPO: %c\n", vehiculo.tipo);
-            printf("\n");
-        }
+    //El siguiente bloque se encarga de ir mostrando los datos de cada vehiculo mientras este activado en el sistema, y cumpla el requisito pedido, mientras reciba datos lo mostrara, en el momento en el que ya no reciba algun dato. se detiene
+    printf("Como desea consultar:\n");
+    printf("1.Marca\n");
+    printf("2.Rango de precio\n");
+    printf("3.Tipo\n");
+    scanf("%d", &op);
+    switch(op){
+        case 1:
+            printf("Ingrese la marca que desea consultar:\n");
+            getchar();
+            fgets(ingreso_marca, 20, stdin);
+            printf("Se mostraran los vehiculos activos que cumplan los requisitos\n");
+            while (fread(&vehiculo, sizeof(vehiculo), 1, vehiculos) == 1){
+                if ((strcmp(ingreso_marca, vehiculo.marca) == 0) && ('A' == vehiculo.estado)){
+                    printf("MODELO: %s", vehiculo.modelo);
+                    printf("\n");
+                }
+            }
+            break;
+        case 2:
+            printf("Ingrese el minimo de precio:\n");
+            scanf("%d", &min);
+            printf("Ingrese el maximo de precio:\n");
+            scanf("%d", &max);
+            printf("Se mostraran los vehiculos activos que cumplan los requisitos\n");
+            while (fread(&vehiculo, sizeof(vehiculo), 1, vehiculos) == 1){
+                if ((vehiculo.valor >= min) && (vehiculo.valor <= max) && ('A' == vehiculo.estado)){
+                    printf("MARCA: %s", vehiculo.marca);
+                    printf("MODELO: %s", vehiculo.modelo);
+                    printf("PRECIO: %d\n", vehiculo.valor);
+                    printf("TIPO: %c\n", vehiculo.tipo);
+                    printf("AÑO: %d\n", vehiculo.año);
+                    printf("PLACA: %s", vehiculo.placa);
+                    printf("COLOR: %s", vehiculo.color);
+                    printf("\n");
+                }
+            }
+            break;
+        case 3:
+            printf("Ingrese el tipo del vehiculo:\n");
+            printf("1. Propio\n");
+            printf("2. Consignado\n");
+            scanf("%d", &op_sec);
+            if (op_sec == 1){
+                printf("Se mostraran los vehiculos activos que cumplan los requisitos\n");
+                while (fread(&vehiculo, sizeof(vehiculo), 1, vehiculos) == 1){
+                    if ((vehiculo.tipo == 'P') && ('A' == vehiculo.estado)){
+                        printf("MARCA: %s", vehiculo.marca);
+                        printf("MODELO: %s", vehiculo.modelo);
+                        printf("PRECIO: %d\n", vehiculo.valor);
+                        printf("TIPO: %c\n", vehiculo.tipo);
+                        printf("AÑO: %d\n", vehiculo.año);
+                        printf("PLACA: %s", vehiculo.placa);
+                        printf("COLOR: %s", vehiculo.color);
+                        printf("\n");
+                    }
+                }
+            }
+            else if (op_sec == 2){
+                printf("Se mostraran los vehiculos activos que cumplan los requisitos\n");
+                while (fread(&vehiculo, sizeof(vehiculo), 1, vehiculos) == 1){
+                    if ((vehiculo.tipo == 'C') && ('A' == vehiculo.estado)){
+                        printf("MARCA: %s", vehiculo.marca);
+                        printf("MODELO: %s", vehiculo.modelo);
+                        printf("PRECIO: %d\n", vehiculo.valor);
+                        printf("TIPO: %c\n", vehiculo.tipo);
+                        printf("AÑO: %d\n", vehiculo.año);
+                        printf("PLACA: %s\n", vehiculo.placa);
+                        printf("COLOR: %s\n", vehiculo.color);
+                        printf("\n");
+                    }
+                }
+            }
+            else {
+                printf("Opcion invalida\n");
+                break;
+            }
+            break;
     }
 
     //Cerrar el archivo
@@ -281,7 +375,6 @@ void main(){
             break;
         case 2:
             consultarVehiculos();
-            printf("\n");
             break;
         case 3:
             actualizarVehiculos();
