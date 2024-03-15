@@ -6,170 +6,210 @@ struct nodo {
     struct nodo *sig;
 };
 
-int vacia(struct nodo *raiz){
-    if (raiz == NULL)
+int vacia(struct nodo *cabeza){
+    if  (cabeza == NULL){
         return 1;
-    else
+    }
+    else {
         return 0;
+    }
 }
 
-void insertar_nodo(struct nodo **raiz, struct nodo **fondo, int valor){
+void insertar_nodo(struct nodo **cabeza, struct nodo **cola, int valor){
     struct nodo *nuevo;
     nuevo = malloc(sizeof(struct nodo));
     nuevo->info = valor;
     nuevo->sig = NULL;
-    if (vacia(*raiz) == 0){
-        (*raiz)->sig = nuevo;
-        (*fondo)->sig = nuevo;
+    if (*cabeza == NULL){
+        *cabeza = nuevo;
+        *cola = nuevo;
     }
-    else{
-        (*fondo)->sig = nuevo;
-        *fondo = nuevo;
-    }
-    printf("Nodo ingresado\n");
-}
-
-int extraer_nodo(struct nodo **raiz){
-    struct nodo *temporal = *raiz;
-    if (temporal == NULL) {
-        printf("La cola está vacía.\n");
-        return -1;
-    } 
     else {
-        int informacion = temporal->info;
-        struct nodo *borrar = temporal;
-        temporal = temporal->sig;
-        free(borrar);
-        *raiz = temporal;
-        return informacion;
+        (*cola)->sig = nuevo;
+        *cola = nuevo;
     }
 }
 
-void imprimir(struct nodo **raiz, struct nodo **fondo){
-    struct nodo *temporal = NULL;
+int extraer_nodo(struct nodo **cabeza, struct nodo **cola){
+    struct nodo *temp = *cabeza;
     int valor = 0;
-    int posicion = 1;
-    if (*raiz == NULL) {
-        printf("La cola está vacía.\n");
-    } 
+    if (vacia(*cabeza) != 1){
+        valor = temp ->info;
+        if (*cabeza == *cola){
+            *cabeza = NULL;
+            *cola = NULL;
+        }
+        else {
+            *cabeza = temp ->sig;
+        }
+        free(temp);
+        return valor;
+    }
     else {
-        printf("=======Informacion===========\n");
-        while(vacia(*raiz) == 0){
-            valor = extraer_nodo(raiz);
-            printf("Posición %i\n\t----> %i\n", posicion, valor);
-            printf("-----------------------------\n");
-            insertar_nodo(&temporal, fondo, valor);
+        return -1;
+    }
+}
+
+void imprimir_cola(struct nodo **cabeza, struct nodo **cola){
+    struct nodo *temp = NULL;
+    int valor = 0, posicion = 1;
+    if (*cabeza == NULL){
+        printf("--La cola esta vacia--\n");
+    }
+    else {
+        printf("======Datos======\n");
+        while (vacia(*cabeza) != 1){
+            valor = extraer_nodo(cabeza, cola);
+            printf("-Posicion %d:\n", posicion);
+            printf("\t> %d", valor);
+            printf("\n-----------------\n");
+            insertar_nodo(&temp, cola, valor);
             posicion++;
         }
-        while(vacia(temporal) == 0){
-            insertar_nodo(raiz, fondo, extraer_nodo(&temporal));
+        printf("=========Fin==========\n");
+        while (temp != NULL){
+            valor = extraer_nodo(&temp, cola);
+            insertar_nodo(cabeza, cola, valor);
         }
     }
 }
 
-int cantidad(struct nodo **raiz){
-    struct nodo *temporal = NULL;
-    int cant = 0;
-    while (vacia(*raiz) == 0) {
-        insertar_nodo(&temporal, raiz, extraer_nodo(raiz));
-        cant++;
+void vaciar(struct nodo **cabeza, struct nodo **cola){
+    if (vacia(*cabeza) == 1){
+        printf("La cola esta vacia");
     }
-    while (vacia(temporal) == 0) {
-        insertar_nodo(raiz, &temporal, extraer_nodo(&temporal));
+    else {
+        while(vacia(*cabeza) != 1){
+            extraer_nodo(cabeza, cola);
+        }
     }
-    return cant;
+    printf("Cola vaciada\n");
 }
 
-void liberar(struct nodo **raiz){
-    while (vacia(*raiz) == 0) {
-        extraer_nodo(raiz);
+int cantidad(struct nodo **cabeza, struct nodo **cola){
+    struct nodo *temp = NULL;
+    int cantidad_nodos = 0, valor = 0;
+    if (vacia(*cabeza) == 1){
+        return cantidad_nodos;
     }
-    printf("La cola ha sido vaciada\n");
-}
-
-void eliminar_posicion(struct nodo **raiz, int posicion){
-    struct nodo *temporal = NULL;
-    int cant = cantidad(raiz);
-    if (posicion <= 0 || posicion > cant) {
-        printf("Posición inválida.\n");
-        return;
-    }
-    for (int i = 1; i < posicion; i++) {
-        insertar_nodo(&temporal, raiz, extraer_nodo(raiz));
-    }
-    extraer_nodo(raiz);
-    while (vacia(temporal) == 0) {
-        insertar_nodo(raiz, &temporal, extraer_nodo(&temporal));
+    else {
+        while(vacia(*cabeza) != 1){
+            valor = extraer_nodo(cabeza, cola);
+            insertar_nodo(&temp, cola, valor);
+            cantidad_nodos++;
+        }
+        while(temp != NULL){
+            valor = extraer_nodo(&temp, cola);
+            insertar_nodo(cabeza, cola, valor);
+        }
+        return cantidad_nodos;
     }
 }
 
-void insertar_posicion(struct nodo **raiz){
-    struct nodo *temporal = NULL;
+void eliminar_posicion(struct nodo **cabeza, struct nodo **cola){
+    struct nodo *temp = NULL;
+    int cantidad_nodos = cantidad(cabeza, cola);
     int posicion = 0;
-    int valor = 0;
-    int cant = cantidad(raiz);
-    if (posicion <= 0 || posicion > cant + 1) {
-        printf("Posición inválida.\n");
-        return;
+    printf("Ingrese la posicion que desea eliminar:\n");
+    scanf("%d", &posicion);
+    if (*cabeza == NULL){
+        printf("Cola vacia\n");
     }
-    for (int i = 1; i < posicion; i++) {
-        insertar_nodo(&temporal, raiz, extraer_nodo(raiz));
+    else if (posicion < 1 || posicion > cantidad_nodos){
+        printf("Posicion no encontrada\n");
     }
-    while (vacia(temporal) == 0) {
-        insertar_nodo(raiz, &temporal, extraer_nodo(&temporal));
+    else {
+        for (int i = 1; i < posicion; i++){
+            insertar_nodo(&temp, cola, extraer_nodo(cabeza, cola));
+        }
+        extraer_nodo(cabeza, cola);
+        while (vacia(*cabeza) != 1){
+            insertar_nodo(&temp, cola, extraer_nodo(cabeza, cola));
+        }
+        *cabeza = temp;
+        printf("Nodo eliminado correctamente\n");
     }
+}
 
+void insertar_posicion(struct nodo **cabeza, struct nodo **cola){
+    struct nodo *temp = NULL;
+    int cantidad_nodos = cantidad(cabeza, cola);
+    int posicion = 0, valor = 0;
+    printf("Ingrese el valor:\n");
+    scanf("%d", &valor);
+    printf("Ingrese la posicion que desea insertar el nodo:\n");
+    scanf("%d", &posicion);
+    if (*cabeza == NULL){
+        printf("Cola vacia\n");
+    }
+    else if (posicion < 1 || posicion > cantidad_nodos){
+        printf("Posicion no encontrada\n");
+    }
+    else {
+        for (int i = 1; i < posicion; i++){
+            insertar_nodo(&temp, cola, extraer_nodo(cabeza, cola));
+        }
+        insertar_nodo(&temp, cola, valor);
+        while (vacia(*cabeza) != 1){
+            insertar_nodo(&temp, cola, extraer_nodo(cabeza, cola));
+        }
+        *cabeza = temp;
+        printf("Nodo insertado correctamente\n");
+    }
 }
 
 int main(){
-    struct nodo *raiz = NULL;
-    struct nodo *fondo = NULL;
+    struct nodo *cabeza = NULL;
+    struct nodo *cola = NULL;
     int op = 0, valor = 0;
     do {
-        printf("-> 1. Ingresar nodo\n"); 
-        printf("-> 2. Extraer nodo\n");
-        printf("-> 3. Imprimir cola\n");
-        printf("-> 4. Vaciar cola\n");
-        printf("-> 5. Ver si esta vacia la cola\n");
-        printf("-> 6. Eliminar posicion\n");
-        printf("-> 7. Insertar posicion\n");
-        printf("0. Salir\n");
-        printf("Escoja una opción:\n");
+        printf("===========Menu===============\n");
+        printf("--> 1. Insertar nodo\n");
+        printf("--> 2. Extraer nodo\n");
+        printf("--> 3. Imprimir cola\n");
+        printf("--> 4. Vaciar cola\n");
+        printf("--> 5. Verificar si hay datos\n");
+        printf("--> 6. Eliminar nodo en una poicion\n");
+        printf("--> 7. Insertar en posicion\n");
+        printf("--> 0. Salir");
+        printf("\nEscoja una opcion:\n");
         scanf("%d", &op);
         switch (op) {
             case 1:
-                printf("Ingrese el valor:\n");
+                printf("Ingrese el valor a agregar:\n");
                 scanf("%d", &valor);
-                insertar_nodo(&raiz, &fondo, valor);
+                insertar_nodo(&cabeza, &cola, valor);
+                printf("Nodo insertado correctamente\n");
                 break;
             case 2:
-                printf("Nodo extraído: %d\n", extraer_nodo(&raiz));
+                printf("El nodo extraido fue: %i\n", extraer_nodo(&cabeza, &cola));
                 break;
             case 3:
-                imprimir(&raiz, &fondo);
+                imprimir_cola(&cabeza, &cola);
                 break;
             case 4:
-                liberar(&raiz);
+                vaciar(&cabeza, &cola);
                 break;
             case 5:
-                if (vacia(raiz) == 0)
-                    printf("La cola tiene información\n");
-                else
-                    printf("La cola está vacía\n");
-                break;
+                if (vacia(cabeza) == 1){
+                    printf("Cola vacia\n");
+                }
+                else {
+                    printf("Cola con datos\n");
+                }
+                break;  
             case 6:
-                eliminar_posicion(&raiz, valor);
-                break;
+                eliminar_posicion(&cabeza, &cola);
+                break;  
             case 7:
-                insertar_posicion(&raiz);
+                insertar_posicion(&cabeza, &cola);
                 break;
             case 0:
-                printf("Ha salido del programa\n");
+                printf("Cerrando...\n");
                 break;
             default:
-                printf("Opción inválida\n");
+                printf("Esa opcion no es valida\n");
                 break;
         }
     } while (op != 0);
-    return 0;
 }
