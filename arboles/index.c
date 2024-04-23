@@ -12,7 +12,7 @@ struct nodo{ // Estructura para el arbol binario
     struct nodo *der;
 };
 
-typedef struct nodo arbol; // Definicion de la estructura arbol
+typedef struct nodo arbol; // Definiendo tipo arbol
 
 
 
